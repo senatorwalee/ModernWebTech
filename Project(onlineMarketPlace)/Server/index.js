@@ -1,30 +1,71 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import express from "express";
 
-import postingsRouter from './Routes/postingsRoutes.js'
+import mongoose from "mongoose";
+
+import cors from "cors";
+
+import session from "express-session";
+import passport from "passport";
+import MongoStore from "connect-mongo";
+import configurePassport from "./config/passport.js";
+
+import dotenv from "dotenv";
+dotenv.config()
+import connectDB from "./config/db.js";
 
 const app = express();
-//to parse all incoming json file
+
+// import https from ''
+
+import postingsRouter from "./Routes/postingsRoutes.js";
+import loginRoute from "./Routes/LoginRoute.js";
+import signupRoute from "./Routes/SignupRoute.js"
+
+// Session configuration
+try {
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || "your-secret-key",
+      resave: false,
+      saveUninitialized: false,
+      store: MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI,
+        ttl: 14 * 24 * 60 * 60,
+      }),
+      cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+      },
+    })
+  );
+} catch (err) {
+  console.error("Session initialization error:", err);
+}
+
+try {
+  app.use(passport.initialize());
+  app.use(passport.session());
+} catch (err) {
+  console.error("Passport initialization error:", err);
+}
+app.use(cors())
+// Middleware to parse JSON request body
 app.use(express.json());
 
-dotenv.config()
+//middleware to use the
+app.use("/", postingsRouter);
+app.use('/login', loginRoute);
+app.use("/auth", signupRoute);
 
-const mongoURI =
-process.env.MONGODB_URI ;
+//connecting to Db
+connectDB();
 
-//connecting to Mongodb
-mongoose.connect(mongoURI).then(() =>
-  console.log("Connected Successfully to Mongodb")).catch((err) => {
-    console.log(
-      `Counld not connect to Mongodb database due to : ${err.message}`
-    );
-  })
+// Configure Passport
+configurePassport(passport);
 
-
-  
-//middleware to use the 
-app.use('/postings',postingsRouter)
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 const PORT = process.env.PORT || 8000;
 

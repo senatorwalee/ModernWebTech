@@ -1,42 +1,34 @@
-import express from 'express'
-import postingsRecordModel from '../Schema/postingsSchema.js'
-const router = express.Router()
+import express from 'express';
+import multer from 'multer';
+import * as postingsController from '../Controller/postingsController.js';
+
+const router = express.Router();
+
+// Setting up multer for file uploads
+const storage = multer.memoryStorage(); 
+const upload = multer({ storage }).array('productPictures', 3);  // Allow up to 3 images
 
 
+// Route to post a new listing
+router.post('/addListing', upload, postingsController.addNewListing);
 
+// Route to get all listings
+router.get('/allPostings', postingsController.getAllListings);
 
-//defining route for getting, deleting ,uddating and adding post
+// Route to get all listings by a particular user
+router.get('/listings/user/:userId', postingsController.getListingsByUser);
 
-//for posting a new listing
-router.post("/", async (req,res) => {
-    try {
-        const newPostingBody = req.body;
-        const newRecord = new postingsRecordModel(newPostingBody);
-        const savedRecord = await newRecord.save();
+// Route to get listings by category
+router.get('/listings/category/:category', postingsController.listingsByCategory);
 
-        res.status(201).send(savedRecord)
-    } catch (error) {
-        res.status(500).send(error)
+// Route to update a listing by ID
+router.put('/listings/:id', postingsController.updatedListing);
 
-    }
-})
+// Route to delete a listing by ID
+router.delete('/listings/:id', postingsController.deleteListing)
 
-//to gey all postings by a particular user
-router.get('/getAllPostingsByUserId/:userId',async(req,res)=>{
-    try {
-        const userId = req.params.userId;
-        const postinsByUser = await postingsRecordModel.find({userId:userId})
-        if (postinsByUser.length === 0) {
-            return res.status(404).send("No Postings found for the user.");
-        }
-        res.status(200).send(postinsByUser)
-        
-    } catch (error) {
-        res.status(500).send(error.message)
-        
-    }
-})
-
+// Route to sort listings by price
+router.get('/listings/sort/price', postingsController.getSortedListingsByPrice);
 
 
 
