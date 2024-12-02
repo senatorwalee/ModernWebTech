@@ -3,6 +3,33 @@ import axios from "axios";
 // Base URL for the backend
 const API_BASE_URL = "http://localhost:8000";
 
+
+// Login user
+export const loginUser = async (credentials) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/login`, credentials);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.message || "Login failed");
+    }
+    throw error;
+  }
+};
+
+
+//for siging up
+export const signupUser = async (userData) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/auth/signup`, userData);
+    return response.data;
+  } catch (error) {
+    console.error("Error during signup:", error.response?.data?.message || error.message);
+    throw new Error(error.response?.data?.message || "Signup failed");
+  }
+};
+
+
 // Fetch all students
 export const fetchStudents = async () => {
   try {
