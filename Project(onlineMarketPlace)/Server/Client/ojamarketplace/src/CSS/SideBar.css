@@ -1,0 +1,52 @@
+/* Sidebar container */
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background-color: #333;
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 20px;
+    transition: width 0.3s ease;
+    overflow: hidden;
+  }
+  
+  /* Collapsed sidebar styling */
+  .sidebar.collapsed {
+    width: 80px;
+  }
+  
+  .toggle-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  
+  /* Nav links styling */
+  .nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .nav-item {
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+    transition: color 0.2s;
+  }
+  
+  .nav-item:hover {
+    color: #1e90ff;
+  }
+  
+  /* Hide text when sidebar is collapsed */
+  .sidebar.collapsed .nav-item {
+    font-size: 0;
+    transition: font-size 0.3s;
+  }
+  
