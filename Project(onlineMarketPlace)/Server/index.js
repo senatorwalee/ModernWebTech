@@ -1,27 +1,36 @@
 import express from "express";
-
 import mongoose from "mongoose";
-
 import cors from "cors";
-
 import session from "express-session";
 import passport from "passport";
 import MongoStore from "connect-mongo";
-import configurePassport from "./config/passport.js";
-
 import dotenv from "dotenv";
-dotenv.config()
+import configurePassport from "./config/passport.js";
 import connectDB from "./config/db.js";
+import postingsRouter from "./Routes/postingsRoutes.js";
+import signupRoute from "./Routes/SignupRoute.js";
+import LoginRoute from "./Routes/Login.js";
+import bcrypt from "bcrypt";
+import User from './Schema/userSchema.js';
+
+dotenv.config();
 
 const app = express();
 
-// import https from ''
 
-import postingsRouter from "./Routes/postingsRoutes.js";
-import loginRoute from "./Routes/LoginRoute.js";
-import signupRoute from "./Routes/SignupRoute.js"
+if (!process.env.MONGODB_URI || !process.env.SESSION_SECRET) {
+  console.error("Missing required environment variables!");
+  process.exit(1);
+}
 
-// Session configuration
+
+connectDB();
+
+
+
+app.use(express.json()); 
+
+// Session Configuration
 try {
   app.use(
     session({
@@ -30,7 +39,7 @@ try {
       saveUninitialized: false,
       store: MongoStore.create({
         mongoUrl: process.env.MONGODB_URI,
-        ttl: 14 * 24 * 60 * 60,
+        ttl: 14 * 24 * 60 * 60, // 14 days
       }),
       cookie: {
         httpOnly: true,
@@ -40,35 +49,68 @@ try {
   );
 } catch (err) {
   console.error("Session initialization error:", err);
+  process.exit(1);
 }
-
-try {
-  app.use(passport.initialize());
-  app.use(passport.session());
-} catch (err) {
-  console.error("Passport initialization error:", err);
-}
-app.use(cors())
-// Middleware to parse JSON request body
-app.use(express.json());
-
-//middleware to use the
-app.use("/", postingsRouter);
-app.use('/login', loginRoute);
-app.use("/auth", signupRoute);
-
-//connecting to Db
-connectDB();
-
+app.use(cors({
+  origin: function (origin, callback) {
+    // List of allowed origins
+    const allowedOrigins = ['http://localhost:3000', "http://192.0.0.2:8000"];
+    
+    // Allow requests with no origin (like mobile apps)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+})); // CORS for cross-origin requests
 // Configure Passport
 configurePassport(passport);
-
-// Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-const PORT = process.env.PORT || 8000;
+// Routes
+app.use("/", postingsRouter);
+app.use("/login", LoginRoute);
+app.use("/auth", signupRoute);
 
+// Test user creation
+const testUser = async () => {
+  const user = new User({
+    username: 'testuser',
+    email: 'test@example.com',
+    password: 'plainpassword',
+  });
+
+  await user.save();
+  console.log(`Saved user: ${JSON.stringify(user, null, 2)}`);
+};
+
+// Test login logic
+// const testLogin = async () => {
+//   const email = 'test@example.com';
+//   const plainPassword = 'plainpassword';
+
+//   const user = await User.findOne({ email });
+//   if (!user) {
+//     console.log('No user found');
+//     return;
+//   }
+
+//   const isMatch = await bcrypt.compare(plainPassword, user.password);
+//   console.log(`Password match: ${isMatch}`);
+// };
+
+// // Run tests
+// (async () => {
+//   await testUser();
+//   await testLogin();
+// })();
+
+
+// Start server
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
-  console.log(`listening on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });

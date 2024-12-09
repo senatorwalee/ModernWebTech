@@ -10,7 +10,7 @@ const postingsRecordSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    enum: ["Furniture", "Electronics", "Clothing", "Home & Kitchen", "Books", "Automobile", "Other"],
+    enum: ["Furniture", "Electronics", "Clothing", "Home & Kitchen", "Books", "Automobile", "Services", "Other"],
   },
   description: {
     type: Schema.Types.Mixed,
@@ -54,6 +54,6 @@ postingsRecordSchema.pre("save", function (next) {
 });
 
 // Creating the data model using the schema
-const postingsRecordModel = mongoose.model("ProductPostings", postingsRecordSchema);
+const postingsRecordModel = mongoose.model("ProductPostings", postingsRecordSchema,"productpostings");
 
 export default postingsRecordModel;

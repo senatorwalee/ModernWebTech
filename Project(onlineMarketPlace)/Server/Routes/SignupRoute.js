@@ -1,5 +1,4 @@
 import express from 'express';
-import bcrypt from 'bcryptjs';
 import User from '../Schema/userSchema.js'; 
 
 const router = express.Router(); 
@@ -20,14 +19,11 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "Email is already registered" });
     }
 
-    // we need to hash the password before saving it to the database
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Creating a new user with the hashed password
-    const user = new User({ username, email, password: hashedPassword });
+    // Create the user with the plaintext password
+    const user = new User({ username, email, password });
     await user.save();  // Save the user to the database
 
-    // Responding with a success message upon successful signup
+    // Respond with a success message upon successful signup
     res.status(201).json({ message: "User registered successfully!" });
   } catch (error) {
     console.error("Error during signup:", error);
